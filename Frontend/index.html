@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Book Reviews</title> 
+  <style>
+    /* Base Reset */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    /* Global Styles */
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, rgb(138, 18, 108), rgb(179, 139, 60), rgb(33, 84, 125));
+      color: #333;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 200vh;
+    }
+
+    h1 {
+      font-size: 32px;
+      margin-bottom: 30px;
+      color: #fff;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
+    }
+
+    h3 {
+      margin-bottom: 20px;
+      font-size: 24px;
+      color: #fff;
+      margin-left: 50px;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Popup Form Styling */
+    #popupOverlay, #editPopupOverlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      z-index: 999;
+    }
+
+    #popupForm, #editPopupForm {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: #7b4444;
+      border-radius: 10px;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+      width: 35%;
+      padding: 25px;
+      z-index: 1000;
+    }
+
+    #popupForm h2, #editPopupForm h2 {
+      font-size: 24px;
+      color: #c3cb23;
+      text-align: center;
+      margin-bottom: 15px;
+    }
+
+    .input-group {
+      margin-bottom: 5px;
+    }
+
+    .input-group label {
+      font-size: 16px;
+      color: #555;
+      margin-bottom: 5px;
+      display: block;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+      color: #333;
+    }
+
+    input:focus, textarea:focus {
+      border-color: #3498db;
+      outline: none;
+    }
+
+    button {
+      background-color: #3498db;
+      color: #fff;
+      padding: 12px;
+      width: 100%;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #2980b9;
+    }
+
+    #closePopup, #closeEditPopup {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: none;
+      border: none;
+      font-size: 22px;
+      color: #aaa;
+      cursor: pointer;
+    }
+
+    #closePopup:hover, #closeEditPopup:hover {
+      color: #333;
+    }
+
+    /* Review Card Styles */
+    #reviewsContainer {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      width: 100%;
+      margin-top: 50px;
+    }
+
+    .review-card {
+      background-color: #fff;
+      padding: 50px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .review-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .review-card h3 {
+      font-size: 20px;
+      margin-bottom: 10px;
+      color: #2c3e50;
+    }
+
+    .rating {
+      margin-bottom: 10px;
+    }
+
+    .rating span {
+      font-size: 18px;
+      color: #ddd;
+    }
+
+    .rating span.filled {
+      color: #f39c12;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 10px;
+    }
+
+    .buttons button {
+      padding: 8px 16px;
+      font-size: 14px;
+      background-color: #e74c3c;
+      border-radius: 5px;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    .buttons button:hover {
+      background-color: #c0392b;
+    }
+
+    /* Floating Button */
+    #addReviewButton {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      width: 60px;
+      height: 60px;
+      background-color: #3498db;
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      font-size: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    #addReviewButton:hover {
+      background-color: #2980b9;
+    }
+
+    /* Suggestions Styling */
+    .suggestion-item {
+      padding: 12px;
+      cursor: pointer;
+      background-color: #f9f9f9;
+      border-bottom: 1px solid #ddd;
+      transition: background-color 0.3s;
+    }
+
+    .suggestion-item:hover {
+      background-color: #f1f1f1;
+    }
+
+    /* Dashboard Style */
+.dashboard {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: 30px;
+  flex-wrap: wrap;
+  gap: 20px; /* Adds space between cards */
+}
+
+.dashboard-card {
+  background: linear-gradient(135deg, #3498db, #8e44ad);
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+  width: 32%;
+  margin: 10px;
+  text-align: center;
+  transition: transform 0.3s, box-shadow 0.3s ease-in-out;
+}
+
+.dashboard-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+.dashboard-card h3 {
+  font-size: 24px;
+  color: #fff;
+  margin-bottom: 15px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.dashboard-card p {
+  font-size: 20px;
+  color: #fff;
+  font-weight: bold;
+}
+
+  </style>
+</head>
+<body>
+
+  <h1>Smart Book Reviews</h1>
+
+  <!-- Add Review Popup -->
+  <div id="popupOverlay">
+    <div id="popupForm">
+      <button id="closePopup" onclick="closePopup()">×</button>
+      <h2>Add Book Review</h2>
+      <div class="input-group">
+        <label for="title">Book Title</label>
+        <input type="text" id="title" placeholder="Enter book title" oninput="suggestTitles()" />
+        <div id="suggestionsContainer" style="border: 1px solid #ccc; max-height: 150px; overflow-y: auto;"></div>
+      </div>
+      <div class="input-group">
+        <label for="author">Author</label>
+        <input type="text" id="author" placeholder="Enter author name" />
+      </div>
+      <div class="input-group">
+        <label for="review">Review Text</label>
+        <textarea id="review" rows="3" placeholder="Write your review"></textarea>
+      </div>
+      <div class="input-group">
+        <label for="rating">Rating (1-5 stars)</label>
+        <input type="number" id="rating" min="1" max="5" oninput="validateRating()" placeholder="Enter rating" />
+      </div>
+      <button onclick="createReview()">Create Review</button>
+    </div>
+  </div>
+
+  <!-- Edit Review Popup -->
+  <div id="editPopupOverlay">
+    <div id="editPopupForm">
+      <button id="closeEditPopup" onclick="closeEditPopup()">×</button>
+      <h2>Edit Book Review</h2>
+      <div class="input-group">
+        <label for="editTitle">Book Title</label>
+        <input type="text" id="editTitle" oninput="suggestTitles()" />
+        <div id="editSuggestionsContainer" style="border: 1px solid #ccc; max-height: 150px; overflow-y: auto;"></div>
+      </div>
+      <div class="input-group">
+        <label for="editAuthor">Author</label>
+        <input type="text" id="editAuthor" />
+      </div>
+      <div class="input-group">
+        <label for="editReview">Review Text</label>
+        <textarea id="editReview" rows="3"></textarea>
+      </div>
+      <div class="input-group">
+        <label for="editRating">Rating (1-5 stars)</label>
+        <input type="number" id="editRating" min="1" max="5" oninput="validateEditRating()" />
+      </div>
+      <button onclick="saveEditedReview()">Save Changes</button>
+    </div>
+  </div>
+
+  <div id="output">
+    <h3>All Reviews</h3>
+    <div id="reviewsContainer"></div>
+  </div>
+
+  <!-- Dashboard -->
+  <div class="dashboard">
+    <div class="dashboard-card">
+      <h3>Total Reviews</h3>
+      <p id="totalReviews">0</p>
+    </div>
+    <div class="dashboard-card">
+      <h3>Average Rating</h3>
+      <p id="averageRating">0</p>
+    </div>
+    <div class="dashboard-card">
+      <h3>Highest Rated</h3>
+      <p id="highestRated">N/A</p>
+    </div>
+  </div>
+
+  <button id="addReviewButton" onclick="openPopup()">+</button>
+
+  <script>
+    // JavaScript code to handle functionality
+    let reviews = [];
+    let suggestions = ['The Great Gatsby', '1984', 'To Kill a Mockingbird', 'The Catcher in the Rye'];
+
+    // Open Add Review Popup
+    function openPopup() {
+      document.getElementById('popupOverlay').style.display = 'block';
+    }
+
+    // Close Add Review Popup
+    function closePopup() {
+      document.getElementById('popupOverlay').style.display = 'none';
+    }
+
+    // Close Edit Review Popup
+    function closeEditPopup() {
+      document.getElementById('editPopupOverlay').style.display = 'none';
+    }
+
+    // Suggest Book Titles
+    function suggestTitles() {
+      let query = document.getElementById('title').value;
+      let filteredSuggestions = suggestions.filter(suggestion => suggestion.toLowerCase().includes(query.toLowerCase()));
+      let suggestionContainer = document.getElementById('suggestionsContainer');
+      suggestionContainer.innerHTML = '';
+      filteredSuggestions.forEach(suggestion => {
+        let div = document.createElement('div');
+        div.classList.add('suggestion-item');
+        div.innerText = suggestion;
+        div.onclick = () => document.getElementById('title').value = suggestion;
+        suggestionContainer.appendChild(div);
+      });
+    }
+
+    // Create Review
+    function createReview() {
+      let title = document.getElementById('title').value;
+      let author = document.getElementById('author').value;
+      let reviewText = document.getElementById('review').value;
+      let rating = parseInt(document.getElementById('rating').value);
+
+      if (title && author && reviewText && rating >= 1 && rating <= 5) {
+        let review = { title, author, reviewText, rating };
+        reviews.push(review);
+        updateReviewList();
+        closePopup();
+      } else {
+        alert('Please fill in all fields with valid information.');
+      }
+    }
+
+    // Update Review List
+    function updateReviewList() {
+      let reviewsContainer = document.getElementById('reviewsContainer');
+      reviewsContainer.innerHTML = '';
+      reviews.forEach((review, index) => {
+        let reviewCard = document.createElement('div');
+        reviewCard.classList.add('review-card');
+        reviewCard.innerHTML = `
+          <h3>${review.title}</h3>
+          <p><strong>Author:</strong> ${review.author}</p>
+          <p><strong>Review:</strong> ${review.reviewText}</p>
+          <div class="rating">
+            ${[...Array(5)].map((_, i) => `<span class="filled">${i < review.rating ? '★' : '☆'}</span>`).join('')}
+          </div>
+          <div class="buttons">
+            <button onclick="editReview(${index})">Edit</button>
+            <button onclick="deleteReview(${index})">Delete</button>
+          </div>
+        `;
+        reviewsContainer.appendChild(reviewCard);
+      });
+
+      // Update Dashboard
+      document.getElementById('totalReviews').innerText = reviews.length;
+      document.getElementById('averageRating').innerText = (reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length).toFixed(1) || 0;
+      document.getElementById('highestRated').innerText = reviews.length ? reviews.reduce((prev, current) => (prev.rating > current.rating ? prev : current)).title : 'N/A';
+    }
+
+    // Edit Review
+    function editReview(index) {
+      let review = reviews[index];
+      document.getElementById('editTitle').value = review.title;
+      document.getElementById('editAuthor').value = review.author;
+      document.getElementById('editReview').value = review.reviewText;
+      document.getElementById('editRating').value = review.rating;
+      document.getElementById('editPopupOverlay').style.display = 'block';
+      document.getElementById('saveEditButton').onclick = () => saveEditedReview(index);
+    }
+
+    // Save Edited Review
+    function saveEditedReview(index) {
+      let title = document.getElementById('editTitle').value;
+      let author = document.getElementById('editAuthor').value;
+      let reviewText = document.getElementById('editReview').value;
+      let rating = parseInt(document.getElementById('editRating').value);
+
+      if (title && author && reviewText && rating >= 1 && rating <= 5) {
+        reviews[index] = { title, author, reviewText, rating };
+        updateReviewList();
+        closeEditPopup();
+      } else {
+        alert('Please fill in all fields with valid information.');
+      }
+    }
+
+    // Delete Review
+    function deleteReview(index) {
+      reviews.splice(index, 1);
+      updateReviewList();
+    }
+  </script>
+
+</body>
+</html>
