@@ -3,15 +3,6 @@
 This project is a Book Review REST API built using Django. It provides endpoints for managing book reviews, including retrieving, creating, updating, and deleting reviews. Responses are returned in JSON format, including success or error messages.
 
 
-*CLI Command*
-pip install django
-cd Django
-.\venv\Scripts\activate
-cd .\Backend\api\
-python .\manage.py runserver 127.0.0.1:80
-python server.py
-
-
 
 ## Setup Guide
 
